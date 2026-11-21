@@ -2,10 +2,14 @@ use reciprocal::app;
 
 #[tokio::main]
 async fn main() {
-    let app = app();
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .expect("bind 127.0.0.1:3000");
-    println!("Reciprocal listening at http://{}", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.expect("server");
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+        .await.expect("bind local server");
+    let address = listener.local_addr().expect("read local address");
+    let url = format!("http://{address}");
+    println!("Reciprocal is ready at {url}");
+    if let Err(error) = webbrowser::open(&url) {
+        eprintln!("Could not open the browser automatically: {error}");
+        println!("Open this address manually: {url}");
+    }
+    axum::serve(listener, app()).await.expect("serve Reciprocal");
 }
