@@ -1,45 +1,35 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#10151d">
-  <title>Reciprocal — Agent orchestration lab</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f4f4f1"><title>Reciprocal</title><link rel="stylesheet" href="/styles.css"></head>
 <body>
-  <header class="topbar"><a class="brand" href="/">RECIPROCAL<span> / LAB</span></a><a href="https://github.com/MustafaAliraqi/reciprocal">SOURCE ↗</a></header>
-  <main>
-    <section class="intro">
-      <p class="eyebrow">MULTI-ARCHITECTURE EXPERIMENTS</p>
-      <h1>Measure the handoff.<br><span>Not the hype.</span></h1>
-      <p class="lede">Compare autoregressive and language-diffusion agents under the same task, then inspect the cost of coordination.</p>
-    </section>
-    <section class="panel">
-      <div class="panel-head"><div><p class="eyebrow">01 / CONFIGURE</p><h2>New experiment</h2></div><span class="status"><i></i> LOCAL SIMULATOR</span></div>
-      <form id="experiment-form">
-        <label for="task">Task or benchmark prompt</label>
-        <textarea id="task" required placeholder="Describe one task that every strategy should solve…">Review a proposed caching design and identify correctness risks.</textarea>
-        <div class="form-row">
-          <div class="field"><label for="strategy">Orchestration strategy</label>
-            <select id="strategy">
-              <option value="ar_only">AR only</option><option value="diffusion_only">Diffusion only</option>
-              <option value="ar_then_diffusion">AR → Diffusion</option><option value="diffusion_then_ar">Diffusion → AR</option>
-              <option value="parallel">Parallel AR + Diffusion</option><option value="hierarchical">Hierarchical orchestration</option>
-            </select>
-          </div>
-          <div class="field small"><label for="repetitions">Repetitions</label><input id="repetitions" type="number" min="1" max="20" value="1"></div>
-        </div>
-        <button type="submit">Run experiment <span>→</span></button>
-        <p id="message" role="status"></p>
-      </form>
-    </section>
-    <section class="results">
-      <div class="section-head"><div><p class="eyebrow">02 / OBSERVATIONS</p><h2>Experiment log</h2></div><span id="run-count">0 runs</span></div>
-      <div id="runs" class="run-list"><div class="empty">No runs yet. Configure an experiment above.</div></div>
-    </section>
-    <footer>SIMULATED VALUES ARE NOT EMPIRICAL MODEL RESULTS · RECIPROCAL</footer>
-  </main>
-  <script src="/app.js"></script>
-</body>
-</html>
+<aside class="sidebar"><div class="brand">reciprocal<span> / workspace</span></div><div class="nav-label">مساحة العمل</div><button class="nav active" data-view="work">تنفيذ مهمة</button><button class="nav" data-view="providers">موصلات النماذج</button><div class="side-foot">LOCAL INSTANCE<br><span>بياناتك تبقى على جهازك</span></div></aside>
+<main>
+<header><div><div class="crumb">RECIPROCAL <span>/</span> WORKSPACE</div><h1 id="page-title">تنفيذ مهمة</h1></div><div class="connection"><i></i> الخادم المحلي يعمل</div></header>
+<section id="work-view" class="view">
+<div class="intro"><div><h2>شنو تريد تنجز؟</h2><p>اكتب المهمة وحدد طريقة تنسيق الوكلاء. كل مرحلة تنفّذ طلباً حقيقياً إلى النموذج المحدد.</p></div></div>
+<div class="panel">
+<label for="task">المهمة</label><textarea id="task" placeholder="اكتب المهمة بالتفصيل..."></textarea>
+<div class="field"><label for="workflow">مسار التنفيذ</label><select id="workflow"><option value="autoregressive">وكيل AR فقط</option><option value="diffusion">وكيل الانتشار اللغوي فقط</option><option value="ar_then_diffusion">AR ثم الانتشار اللغوي</option><option value="diffusion_then_ar">الانتشار اللغوي ثم AR</option><option value="parallel">تشغيل الوكيلين بالتوازي</option></select></div>
+<div class="provider-grid"><div class="field" id="ar-field"><label for="ar-provider">وكيل AR</label><select id="ar-provider"></select></div><div class="field" id="diffusion-field"><label for="diffusion-provider">وكيل الانتشار اللغوي</label><select id="diffusion-provider"></select></div></div>
+<div class="actions"><button id="run">تنفيذ المهمة</button><span id="status" role="status"></span></div>
+</div>
+<div id="result" class="result hidden"><div class="result-head"><h2>النتيجة</h2><span id="run-id"></span></div><div id="stages"></div><article id="final-output" class="output"></article></div>
+</section>
+<section id="providers-view" class="view hidden">
+<div class="intro"><div><h2>موصلات النماذج</h2><p>كل موصل يُسجّل ضمن فئته فقط. لا يمكن إسناد موصل AR إلى خانة الانتشار اللغوي أو العكس.</p></div></div>
+<div class="provider-grid">
+<form id="provider-form" class="panel">
+<h2>إضافة موصل</h2>
+<label for="p-name">اسم الموصل</label><input id="p-name" required placeholder="مثلاً OpenRouter">
+<label for="p-architecture">فئة النموذج</label><select id="p-architecture"><option value="autoregressive">AR — توليد تسلسلي</option><option value="diffusion">Language Diffusion — انتشار لغوي</option></select>
+<label for="p-adapter">طريقة الاتصال</label><select id="p-adapter"><option value="open_ai_compatible">واجهة متوافقة مع OpenAI</option><option value="codex_cli">Codex CLI (فئة AR فقط)</option></select>
+<div id="endpoint-field"><label for="p-endpoint">عنوان API</label><input id="p-endpoint" placeholder="https://openrouter.ai/api/v1"></div>
+<label for="p-model">معرّف النموذج</label><input id="p-model" required placeholder="provider/model-name">
+<label for="p-key">مفتاح API (اختياري لـ Codex CLI)</label><input id="p-key" type="password" autocomplete="off" placeholder="يُستخدم للطلب الحالي ولا يُعرض مجدداً">
+<button type="submit">حفظ الموصل</button><p class="hint">مفاتيح API لا تُكتب داخل ملفات المشروع. احفظها في مدير كلمات المرور بالنظام عند توفره، أو أدخلها عند إعداد الموصل.</p>
+</form>
+<div class="panel"><h2>وكلاء AR</h2><div id="ar-list" class="provider-list"></div><div class="divider"></div><h2>وكلاء الانتشار اللغوي</h2><div id="diffusion-list" class="provider-list"></div></div>
+</div>
+</section>
+<footer>RECIPROCAL · LOCAL AGENT ORCHESTRATION</footer>
+</main><script src="/app.js"></script></body></html>
