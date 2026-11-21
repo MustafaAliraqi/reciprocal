@@ -23,6 +23,7 @@ pub enum Workflow {
     ArThenDiffusion,
     DiffusionThenAr,
     Parallel,
+    Hierarchical,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
