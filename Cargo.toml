@@ -19,3 +19,7 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "proces
 tower-http = { version = "0.5", features = ["fs", "trace"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 webbrowser = "1"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
