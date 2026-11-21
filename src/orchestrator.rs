@@ -31,14 +31,28 @@ pub async fn execute(state: std::sync::Arc<AppState>, request: TaskRequest) -> R
                 stages.push(StageResult { architecture: p.architecture, provider: p.name, output: context.clone() });
             }
         }
-        Workflow::Hierarchical => {\n            let ar = state.require_provider(request.autoregressive_provider.as_deref(), Architecture::Autoregressive)?;\n            let df = state.require_provider(request.diffusion_provider.as_deref(), Architecture::Diffusion)?;\n            let plan_prompt = format!("أنت المنسق الرئيسي. قسّم المهمة التالية إلى خطة تنفيذ قصيرة وواضحة، وحدد الناتج المطلوب ومعايير التحقق. لا تنفذ المهمة بعد.\\n\\nالمهمة: {}", request.task);\n            let plan = state.invoke(&ar, &plan_prompt).await?;\n            stages.push(StageResult { architecture: ar.architecture, provider: ar.name.clone(), output: plan.clone() });\n            let work_prompt = format!("نفّذ المهمة التالية وفق خطة المنسق. أخرج النتيجة مباشرة واذكر أي جزء لم تستطع إنجازه.\\n\\nالمهمة: {}\\n\\nالخطة: {}", request.task, plan);\n            let work = state.invoke(&df, &work_prompt).await?;\n            stages.push(StageResult { architecture: df.architecture, provider: df.name.clone(), output: work.clone() });\n            let verify_prompt = format!("تحقق من اكتمال وصحة الناتج مقارنة بالمهمة والخطة. صحح التناقضات الواضحة، ولا تخترع معلومات.\\n\\nالمهمة: {}\\n\\nالخطة: {}\\n\\nالناتج: {}", request.task, plan, work);\n            context = state.invoke(&ar, &verify_prompt).await?;\n            stages.push(StageResult { architecture: ar.architecture, provider: ar.name, output: context.clone() });\n        }\n        Workflow::Parallel => {
+        Workflow::Parallel => {
             let ar = state.require_provider(request.autoregressive_provider.as_deref(), Architecture::Autoregressive)?;
             let df = state.require_provider(request.diffusion_provider.as_deref(), Architecture::Diffusion)?;
             let (a, d) = tokio::join!(state.invoke(&ar, &request.task), state.invoke(&df, &request.task));
-            let a = a?; let d = d?;
+            let a = a?;
+            let d = d?;
             stages.push(StageResult { architecture: ar.architecture, provider: ar.name, output: a.clone() });
             stages.push(StageResult { architecture: df.architecture, provider: df.name, output: d.clone() });
             context = format!("## مخرجات وكيل AR\n{a}\n\n## مخرجات وكيل الانتشار اللغوي\n{d}");
+        }
+        Workflow::Hierarchical => {
+            let ar = state.require_provider(request.autoregressive_provider.as_deref(), Architecture::Autoregressive)?;
+            let df = state.require_provider(request.diffusion_provider.as_deref(), Architecture::Diffusion)?;
+            let plan_prompt = format!("أنت المنسق الرئيسي. قسّم المهمة التالية إلى خطة تنفيذ قصيرة وواضحة، وحدد الناتج المطلوب ومعايير التحقق. لا تنفذ المهمة بعد.\n\nالمهمة: {}", request.task);
+            let plan = state.invoke(&ar, &plan_prompt).await?;
+            stages.push(StageResult { architecture: ar.architecture, provider: ar.name.clone(), output: plan.clone() });
+            let work_prompt = format!("نفّذ المهمة التالية وفق خطة المنسق. أخرج النتيجة مباشرة واذكر أي جزء لم تستطع إنجازه.\n\nالمهمة: {}\n\nالخطة: {}", request.task, plan);
+            let work = state.invoke(&df, &work_prompt).await?;
+            stages.push(StageResult { architecture: df.architecture, provider: df.name.clone(), output: work.clone() });
+            let verify_prompt = format!("تحقق من اكتمال وصحة الناتج مقارنة بالمهمة والخطة. صحح التناقضات الواضحة، ولا تخترع معلومات.\n\nالمهمة: {}\n\nالخطة: {}\n\nالناتج: {}", request.task, plan, work);
+            context = state.invoke(&ar, &verify_prompt).await?;
+            stages.push(StageResult { architecture: ar.architecture, provider: ar.name, output: context.clone() });
         }
     }
     if stages.is_empty() { return Err(anyhow!("لم يتم تنفيذ أي مرحلة")); }
