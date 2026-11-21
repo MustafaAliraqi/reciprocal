@@ -1,63 +1,67 @@
 # Reciprocal
 
-A Rust research workbench for comparing orchestration strategies across autoregressive (AR) and language-diffusion models.
+**A local-first agent orchestration workspace for autoregressive (AR) and language-diffusion models.**
 
-## Research question
+Reciprocal runs real model requests through configured provider adapters. It is not a simulator or benchmarking suite.
 
-When, and under what controlled conditions, does coordinating AR and diffusion models improve task quality enough to justify additional latency and cost?
+## Windows application
 
-Reciprocal deliberately does **not** hard-code roles such as “AR reasons, diffusion rewrites.” It compares six execution strategies:
+The Windows release is a standalone executable. On launch it binds a local-only HTTP server to an available loopback port and opens the workspace in the default browser. The browser is the GUI; no remote server is required.
 
-- `ar_only`
-- `diffusion_only`
-- `ar_then_diffusion`
-- `diffusion_then_ar`
-- `parallel`
-- `hierarchical`
+## Provider separation
 
-## Important status note
+Providers are registered under one architecture family:
 
-The first version is an orchestration simulator and API scaffold. Its outputs are labelled simulated and must not be interpreted as empirical model performance. Provider adapters, reproducible benchmark suites, and durable experiment storage are planned extensions.
+- **Autoregressive (AR):** sequential next-token generation agents. Codex CLI is available only in this family.
+- **Language diffusion:** models that generate/refine text through diffusion-style iterative denoising. They are registered separately and never appear in AR selectors.
 
-## Run
+The application rejects a Codex CLI registration as a diffusion provider and checks the selected provider family again when a task is executed. For generic OpenAI-compatible endpoints, the user must classify the specific model correctly; the application does not guess architecture from a vendor name.
 
-Requires stable Rust and Cargo.
+## Supported workflows
+
+- AR agent
+- Language-diffusion agent
+- AR → diffusion handoff
+- Diffusion → AR handoff
+- Parallel AR + diffusion execution
+
+Each stage receives the task and, for sequential workflows, the preceding stage's output. Parallel execution returns both agent outputs without pretending to rank or compare them.
+
+## Connections
+
+- **OpenAI-compatible API:** configure endpoint, model ID, and API key. This can connect to OpenRouter and compatible providers. Diffusion providers must expose a compatible chat-completions interface; other diffusion APIs need a dedicated adapter.
+- **Codex CLI:** uses the locally installed and authenticated `codex` command. AR family only.
+
+API keys are stored through the operating system credential manager, not written to the provider JSON file. Provider metadata is stored in the user's application configuration directory.
+
+## Build from source
 
 ```bash
 cargo run
 ```
 
-Open http://127.0.0.1:3000
+The application opens the browser automatically.
+
+## Windows release build
+
+```powershell
+cargo build --release
+```
+
+The executable is at `target/release/reciprocal.exe`. The `static/` directory must be available beside the executable in this initial source build.
 
 ## API
 
 - `GET /api/health`
-- `GET /api/strategies`
-- `GET /api/runs`
-- `POST /api/runs`
+- `GET /api/providers`
+- `POST /api/providers`
+- `DELETE /api/providers/:id`
+- `POST /api/tasks`
 
-Example:
+## Current limitations
 
-```bash
-curl -X POST http://127.0.0.1:3000/api/runs \
-  -H 'content-type: application/json' \
-  -d '{"task":"Compare two system designs","strategy":"parallel","repetitions":1}'
-```
+- Diffusion adapters currently require an OpenAI-compatible chat-completions endpoint. A provider-specific adapter interface is the next extension for native diffusion APIs.
+- Codex CLI must already be installed and authenticated on the machine.
+- The first version does not include long-term task history, team accounts, or cloud synchronization.
 
-## Experimental discipline
-
-For valid comparisons, hold constant or report the task set, prompt, model/version, decoding settings, hardware, evaluator rubric, and repetition count.
-
-Report at least:
-
-- task quality and the evaluator/rubric used;
-- end-to-end latency;
-- model and orchestration cost;
-- correction/rework cycles;
-- interaction gain against the strongest single-family baseline, together with added cost and latency.
-
-Do not claim a hybrid strategy is better from quality alone if its resource use is materially higher.
-
-## License
-
-MIT
+MIT License.
