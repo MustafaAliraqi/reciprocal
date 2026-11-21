@@ -103,7 +103,7 @@ impl AppState {
         match provider.adapter {
             AdapterKind::CodexCli => {
                 let output = tokio::process::Command::new("codex")
-                    .arg("exec").arg("--skip-git-repo-check").arg(prompt)
+                    .arg("exec").arg("--skip-git-repo-check").arg("--model").arg(&provider.model).arg(prompt)
                     .output().await.context("لم يتم العثور على Codex CLI. ثبّته وسجّل الدخول أولاً")?;
                 if !output.status.success() {
                     return Err(anyhow!("Codex CLI failed: {}", String::from_utf8_lossy(&output.stderr)));
