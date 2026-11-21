@@ -14,7 +14,8 @@ async fn provider_list_returns_json_array() {
     let response = app().oneshot(Request::builder().uri("/api/providers").body(Body::empty()).unwrap()).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     let body = response.into_body().collect().await.unwrap().to_bytes();
-    let parsed: serde_json::Value = serde_json::from_slice(&body).unwrap();\n    assert!(parsed.is_array());
+    let parsed: serde_json::Value = serde_json::from_slice(&body).unwrap();
+    assert!(parsed.is_array());
 }
 
 #[tokio::test]
