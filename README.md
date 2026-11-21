@@ -23,7 +23,7 @@ The application rejects a Codex CLI registration as a diffusion provider and che
 - Language-diffusion agent
 - AR → diffusion handoff
 - Diffusion → AR handoff
-- Parallel AR + diffusion execution
+- Parallel AR + diffusion execution\n- Hierarchical planner → diffusion worker → AR verifier
 
 Each stage receives the task and, for sequential workflows, the preceding stage's output. Parallel execution returns both agent outputs without pretending to rank or compare them.
 
@@ -48,7 +48,7 @@ The application opens the browser automatically.
 cargo build --release
 ```
 
-The executable is at `target/release/reciprocal.exe`. The `static/` directory must be available beside the executable in this initial source build.
+The executable is at `target/release/reciprocal.exe`. The web GUI is embedded in the executable; no separate static directory is required.
 
 ## API
 
