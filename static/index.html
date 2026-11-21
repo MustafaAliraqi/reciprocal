@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#10151d">
+  <title>Reciprocal — Agent orchestration lab</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/">RECIPROCAL<span> / LAB</span></a><a href="https://github.com/MustafaAliraqi/reciprocal">SOURCE ↗</a></header>
+  <main>
+    <section class="intro">
+      <p class="eyebrow">MULTI-ARCHITECTURE EXPERIMENTS</p>
+      <h1>Measure the handoff.<br><span>Not the hype.</span></h1>
+      <p class="lede">Compare autoregressive and language-diffusion agents under the same task, then inspect the cost of coordination.</p>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><p class="eyebrow">01 / CONFIGURE</p><h2>New experiment</h2></div><span class="status"><i></i> LOCAL SIMULATOR</span></div>
+      <form id="experiment-form">
+        <label for="task">Task or benchmark prompt</label>
+        <textarea id="task" required placeholder="Describe one task that every strategy should solve…">Review a proposed caching design and identify correctness risks.</textarea>
+        <div class="form-row">
+          <div class="field"><label for="strategy">Orchestration strategy</label>
+            <select id="strategy">
+              <option value="ar_only">AR only</option><option value="diffusion_only">Diffusion only</option>
+              <option value="ar_then_diffusion">AR → Diffusion</option><option value="diffusion_then_ar">Diffusion → AR</option>
+              <option value="parallel">Parallel AR + Diffusion</option><option value="hierarchical">Hierarchical orchestration</option>
+            </select>
+          </div>
+          <div class="field small"><label for="repetitions">Repetitions</label><input id="repetitions" type="number" min="1" max="20" value="1"></div>
+        </div>
+        <button type="submit">Run experiment <span>→</span></button>
+        <p id="message" role="status"></p>
+      </form>
+    </section>
+    <section class="results">
+      <div class="section-head"><div><p class="eyebrow">02 / OBSERVATIONS</p><h2>Experiment log</h2></div><span id="run-count">0 runs</span></div>
+      <div id="runs" class="run-list"><div class="empty">No runs yet. Configure an experiment above.</div></div>
+    </section>
+    <footer>SIMULATED VALUES ARE NOT EMPIRICAL MODEL RESULTS · RECIPROCAL</footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
