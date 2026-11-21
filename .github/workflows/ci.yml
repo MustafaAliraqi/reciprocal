@@ -1,12 +1,15 @@
 name: Rust CI
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
 concurrency:
   group: reciprocal-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,19 +19,37 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - run: cargo fmt --all
+      - run: cargo fmt --all -- --check
       - run: cargo test --all-targets
-      - run: cargo clippy --all-targets
-  windows-release:
+      - run: cargo clippy --all-targets -- -D warnings
+
+  release:
     if: github.event_name == 'push'
-    runs-on: windows-latest
+    name: Build ${{ matrix.platform }} release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows-x64
+            binary: reciprocal.exe
+          - os: ubuntu-latest
+            platform: linux-x64
+            binary: reciprocal
+          - os: macos-latest
+            platform: macos
+            binary: reciprocal
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libsecret-1-dev
       - run: cargo build --release
       - uses: actions/upload-artifact@v4
         with:
-          name: reciprocal-windows-x64
-          path: target/release/reciprocal.exe
+          name: reciprocal-${{ matrix.platform }}
+          path: target/release/${{ matrix.binary }}
           if-no-files-found: error
