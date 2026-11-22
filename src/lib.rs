@@ -30,7 +30,6 @@ pub fn app() -> Router {
         .route("/api/workspace", get(workspace::get_workspace).post(workspace::set_workspace))
         .route("/api/workspace/files", get(workspace::list_files))
         .route("/api/workspace/read", get(workspace::read_file))
-        .route("/api/workspace/write", axum::routing::post(workspace::write_file))
         .route("/api/workspace/search", get(workspace::search_files))
         .with_state(state)
         .fallback(static_file)
