@@ -67,3 +67,16 @@ async fn workspace_api_sets_root_and_reads_files_within_it() {
 
     fs::remove_dir_all(root).unwrap();
 }
+
+#[tokio::test]
+async fn direct_workspace_write_endpoint_is_not_exposed() {
+    let response = app().oneshot(
+        Request::builder()
+            .method("POST")
+            .uri("/api/workspace/write")
+            .header("content-type", "application/json")
+            .body(Body::from(r#"{"path":"unsafe.txt","content":"bypass"}"#))
+            .unwrap(),
+    ).await.unwrap();
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+}

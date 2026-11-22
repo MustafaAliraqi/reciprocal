@@ -63,3 +63,14 @@ fn workspace_rejects_symlinks_that_escape_root() {
     fs::remove_dir_all(root).unwrap();
     fs::remove_dir_all(outside).unwrap();
 }
+
+#[test]
+fn workspace_rejects_oversized_writes() {
+    let root = temp_dir("write-limit");
+    let workspace = WorkspaceState::default();
+    workspace.set_root(root.to_str().unwrap()).unwrap();
+    let oversized = "x".repeat(2 * 1024 * 1024 + 1);
+    assert!(workspace.write("large.txt", &oversized).is_err());
+    assert!(!root.join("large.txt").exists());
+    fs::remove_dir_all(root).unwrap();
+}

@@ -8,6 +8,7 @@ use std::{
 };
 
 const MAX_READ_BYTES: u64 = 2 * 1024 * 1024;
+const MAX_WRITE_BYTES: usize = 2 * 1024 * 1024;
 const MAX_SEARCH_FILES: usize = 10_000;
 const MAX_SEARCH_RESULTS: usize = 100;
 
@@ -37,12 +38,6 @@ pub struct SearchQuery {
     pub query: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct WriteFileRequest {
-    pub path: String,
-    pub content: String,
-}
-
 #[derive(Debug, Serialize)]
 pub struct FileEntry {
     pub name: String,
@@ -59,7 +54,7 @@ pub struct SearchMatch {
 }
 
 impl WorkspaceState {
-    fn root(&self) -> Result<PathBuf, String> {
+    pub fn root_path(&self) -> Result<PathBuf, String> {
         self.root
             .read()
             .map_err(|_| "workspace state is unavailable".to_string())?
@@ -103,7 +98,7 @@ impl WorkspaceState {
     }
 
     fn existing_path(&self, value: &str) -> Result<(PathBuf, PathBuf), String> {
-        let root = self.root()?;
+        let root = self.root_path()?;
         let relative = Self::relative_path(value)?;
         let canonical = fs::canonicalize(root.join(&relative))
             .map_err(|error| format!("تعذر الوصول إلى المسار: {error}"))?;
@@ -153,7 +148,10 @@ impl WorkspaceState {
     }
 
     pub fn write(&self, value: &str, content: &str) -> Result<(), String> {
-        let root = self.root()?;
+        if content.len() > MAX_WRITE_BYTES {
+            return Err("حجم المحتوى يتجاوز حد الكتابة (2 MiB)".into());
+        }
+        let root = self.root_path()?;
         let relative = Self::relative_path(value)?;
         if relative.as_os_str().is_empty() || relative.file_name().is_none() {
             return Err("حدد اسم ملف صالحاً".into());
@@ -180,7 +178,7 @@ impl WorkspaceState {
     }
 
     pub fn search(&self, needle: &str) -> Result<Vec<SearchMatch>, String> {
-        let root = self.root()?;
+        let root = self.root_path()?;
         let needle = needle.trim().to_lowercase();
         if needle.is_empty() {
             return Err("اكتب نصاً للبحث عنه".into());
@@ -238,6 +236,36 @@ impl WorkspaceState {
         }
         Ok(matches)
     }
+    pub fn git_status(&self) -> Result<String, String> {
+        let root = self.root_path()?;
+        let output = std::process::Command::new("git")
+            .arg("-C").arg(root)
+            .args(["-c", "core.fsmonitor=false", "-c", "core.pager=cat", "status", "--short", "--branch"])
+            .env("GIT_OPTIONAL_LOCKS", "0")
+            .env_remove("GIT_DIR")
+            .env_remove("GIT_WORK_TREE")
+            .output().map_err(|error| format!("تعذر تشغيل Git: {error}"))?;
+        if !output.status.success() {
+            return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+        }
+        Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+    }
+
+    pub fn git_diff(&self) -> Result<String, String> {
+        let root = self.root_path()?;
+        let output = std::process::Command::new("git")
+            .arg("-C").arg(root)
+            .args(["-c", "core.fsmonitor=false", "-c", "core.pager=cat", "diff", "--no-ext-diff", "--no-textconv", "--"])
+            .env("GIT_OPTIONAL_LOCKS", "0")
+            .env_remove("GIT_DIR")
+            .env_remove("GIT_WORK_TREE")
+            .output().map_err(|error| format!("تعذر تشغيل Git: {error}"))?;
+        if !output.status.success() {
+            return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+        }
+        Ok(String::from_utf8_lossy(&output.stdout).chars().take(100_000).collect())
+    }
+
 }
 
 pub async fn get_workspace(
@@ -266,15 +294,6 @@ pub async fn read_file(
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     let path = query.path.ok_or((StatusCode::BAD_REQUEST, "حدد مسار الملف".into()))?;
     state.workspace.read(&path).map(|content| Json(serde_json::json!({"path":path,"content":content})))
-        .map_err(|error| (StatusCode::BAD_REQUEST, error))
-}
-
-pub async fn write_file(
-    axum::extract::State(state): axum::extract::State<Arc<crate::providers::AppState>>,
-    Json(input): Json<WriteFileRequest>,
-) -> Result<StatusCode, (StatusCode, String)> {
-    state.workspace.write(&input.path, &input.content)
-        .map(|()| StatusCode::NO_CONTENT)
         .map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
 
