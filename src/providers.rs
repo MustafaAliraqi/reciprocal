@@ -97,7 +97,8 @@ impl AppState {
         let endpoint=format!("{}/chat/completions",provider.endpoint.trim_end_matches('/'));
         let mut body=json!({"model":provider.model,"messages":messages,"stream":false});
         if use_tools { body["tools"]=workspace_tool_specs(); body["tool_choice"]=json!("auto"); }
-        let response=reqwest::Client::new().post(endpoint).bearer_auth(key).json(&body).send().await.context("فشل الاتصال بمزوّد النموذج")?;
+        let response=reqwest::Client::new().post(endpoint).bearer_auth(key).json(&body).timeout(std::time::Duration::from_secs(120))
+            .send().await.context("فشل الاتصال بمزوّد النموذج")?;
         let status=response.status(); let body:Value=response.json().await.context("استجابة API غير صالحة")?;
         if !status.is_success(){return Err(anyhow!("Provider returned {status}: {}",body.get("error").unwrap_or(&body)));}
         Ok(body)
@@ -140,10 +141,19 @@ impl AppState {
                 if events.len() >= MAX_TOOL_CALLS {
                     return Err(anyhow!("تجاوز النموذج الحد الأقصى لاستدعاءات الأدوات ({MAX_TOOL_CALLS})"));
                 }
-                let id=call.get("id").and_then(Value::as_str).unwrap_or("").to_owned();
+                let id=call.get("id").and_then(Value::as_str).filter(|value| !value.is_empty())
+                    .ok_or_else(|| anyhow!("استدعاء الأداة من النموذج لا يحتوي معرّفاً صالحاً"))?.to_owned();
                 let name=call.pointer("/function/name").and_then(Value::as_str).unwrap_or("").to_owned();
                 let raw=call.pointer("/function/arguments").and_then(Value::as_str).unwrap_or("{}");
-                let args:Value=serde_json::from_str(raw).unwrap_or_else(|_|json!({}));
+                let args:Value=match serde_json::from_str(raw) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        let output=format!("Tool error: invalid JSON arguments: {error}");
+                        events.push(ToolEvent{name:name.clone(),arguments:json!({"raw":raw}),output:output.clone(),succeeded:false});
+                        messages.push(json!({"role":"tool","tool_call_id":id,"content":output}));
+                        continue;
+                    }
+                };
                 let (output,succeeded)=self.execute_workspace_tool(&name,&args,allow_writes);
                 events.push(ToolEvent{name:name.clone(),arguments:args,output:output.clone(),succeeded});
                 messages.push(json!({"role":"tool","tool_call_id":id,"content":output}));
