@@ -7,6 +7,9 @@
 <header><div><div class="crumb">RECIPROCAL <span>/</span> WORKSPACE</div><h1 id="page-title">تنفيذ مهمة</h1></div><div class="connection"><i></i> الخادم المحلي يعمل</div></header>
 <section id="work-view" class="view">
 <div class="intro"><div><h2>شنو تريد تنجز؟</h2><p>اختَر LLMs Agent أو Diffusion Agent، أو نسّق بين الاثنين. كل مرحلة تنفّذ طلباً فعلياً إلى الموصل المحدد.</p></div></div>
+<div class="panel workspace-panel">
+<h2>Workspace</h2><p class="hint">حدد مجلد العمل الذي يُسمح لأدوات الملفات بالوصول إليه. لا يمكن للأدوات الخروج من هذا المجلد.</p><div class="workspace-select"><input id="workspace-path" placeholder="مسار المجلد، مثلاً C:\Projects\MyApp"><button id="set-workspace" type="button">تعيين Workspace</button></div><div id="workspace-status" class="workspace-status">لم يتم تحديد مجلد عمل.</div>
+</div>
 <div class="panel">
 <label for="task">المهمة</label><textarea id="task" placeholder="اكتب المهمة بالتفصيل..."></textarea>
 <div class="field"><label for="workflow">مسار التنفيذ</label><select id="workflow"><option value="autoregressive">LLMs Agent only</option><option value="diffusion">Diffusion Agent only</option><option value="ar_then_diffusion">LLMs Agent → Diffusion Agent</option><option value="diffusion_then_ar">Diffusion Agent → LLMs Agent</option><option value="parallel">Parallel: both agents</option><option value="hierarchical">Hierarchical: LLMs planner → Diffusion worker → LLMs verifier</option></select></div>
