@@ -16,7 +16,9 @@
 <div class="provider-grid"><div class="field" id="ar-field"><label for="ar-provider">LLMs Agent</label><select id="ar-provider"></select></div><div class="field" id="diffusion-field"><label for="diffusion-provider">Diffusion Agent</label><select id="diffusion-provider"></select></div></div>
 <div class="actions"><button id="run">تنفيذ المهمة</button><span id="status" role="status"></span></div>
 </div>
-<div id="result" class="result hidden"><div class="result-head"><h2>النتيجة</h2><span id="run-id"></span></div><div id="stages"></div><section id="tool-events" class="tool-events hidden"><h3>سجل استدعاءات الأدوات</h3><div id="tool-event-list"></div></section><article id="final-output" class="output"></article></div>
+<div id="result" class="result hidden"><div class="result-head"><h2>النتيجة</h2><span id="run-id"></span></div><div id="stages"></div>
+<section id="blackboard-panel" class="blackboard-panel hidden"><div class="blackboard-head"><div><h3>Agent Blackboard</h3><p>سجل المعرفة المشتركة بين مراحل المهمة</p></div><span id="blackboard-count"></span></div><div id="blackboard-entries"></div></section>
+<section id="tool-events" class="tool-events hidden"><h3>سجل استدعاءات الأدوات</h3><div id="tool-event-list"></div></section><article id="final-output" class="output"></article></div>
 </section>
 <section id="providers-view" class="view hidden">
 <div class="intro"><div><h2>موصلات الوكلاء</h2><p>كل موصل ينتمي إلى عائلة معمارية محددة. LLMs Agent وDiffusion Agent لهما قوائم منفصلة.</p></div></div>

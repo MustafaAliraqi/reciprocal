@@ -1,3 +1,4 @@
+pub mod blackboard;
 pub mod domain;
 pub mod orchestrator;
 pub mod providers;
