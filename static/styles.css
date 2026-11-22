@@ -6,3 +6,11 @@
 .workspace-select button{white-space:nowrap;background:#e8ece8;border:1px solid var(--line);color:#35473d;border-radius:4px;padding:9px 13px;font:inherit;cursor:pointer}
 .workspace-status{font-size:11px;color:var(--muted);margin-top:10px;overflow-wrap:anywhere}
 @media(max-width:620px){.workspace-select{flex-direction:column}.workspace-select button{width:100%}}
+
+.consent{display:flex;align-items:flex-start;gap:8px;margin-top:12px;font-size:12px;line-height:1.7;color:#535b54}
+.consent input{width:auto;margin:3px 0 0;accent-color:var(--accent)}
+.tool-events{margin:18px 0}
+.tool-events h3{font-size:13px;font-weight:650}
+.tool-event{border:1px solid var(--line);border-radius:5px;background:#fbfbf9;padding:12px;margin:8px 0}
+.tool-event strong{font-size:11px;color:var(--accent)}
+.tool-event pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.6 ui-monospace,Consolas,monospace;margin:8px 0 0;color:#454b45}
