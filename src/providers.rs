@@ -1,4 +1,4 @@
-use crate::domain::{AdapterKind, Architecture, NewProvider, ProviderConfig};
+use crate::domain::{AdapterKind, Architecture, NewProvider, ProviderConfig};\nuse crate::workspace::WorkspaceState;
 use anyhow::{anyhow, Context, Result};
 use keyring::Entry;
 use serde::Serialize;
@@ -9,7 +9,7 @@ const SERVICE: &str = "reciprocal";
 #[derive(Clone)]
 pub struct AppState {
     providers: std::sync::Arc<Mutex<Vec<ProviderConfig>>>,
-    config_path: PathBuf,
+    config_path: PathBuf,\n    pub workspace: Arc<WorkspaceState>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -32,7 +32,7 @@ impl AppState {
         let providers = fs::read_to_string(&path)
             .ok().and_then(|s| serde_json::from_str::<Vec<ProviderConfig>>(&s).ok())
             .unwrap_or_default();
-        Self { providers: std::sync::Arc::new(Mutex::new(providers)), config_path: path }
+        Self { providers: std::sync::Arc::new(Mutex::new(providers)), config_path: path, workspace: Arc::new(WorkspaceState::default()) }
     }
 
     fn save(&self) -> Result<()> {
