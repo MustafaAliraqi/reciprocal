@@ -21,6 +21,34 @@ pub enum Workflow {
     Autoregressive, Diffusion, ArThenDiffusion, DiffusionThenAr, Parallel, Hierarchical,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BlackboardKind { Plan, Observation, Artifact, Decision, Review, Output }
+
+impl BlackboardKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Plan => "plan",
+            Self::Observation => "observation",
+            Self::Artifact => "artifact",
+            Self::Decision => "decision",
+            Self::Review => "review",
+            Self::Output => "output",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BlackboardEntry {
+    pub task_id: String,
+    pub sequence: u64,
+    pub key: String,
+    pub kind: BlackboardKind,
+    pub architecture: Architecture,
+    pub provider: String,
+    pub content: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProviderConfig {
     pub id: String,
@@ -61,6 +89,7 @@ pub struct TaskResult {
     pub output: String,
     pub stages: Vec<StageResult>,
     pub tool_events: Vec<ToolEvent>,
+    pub blackboard: Vec<BlackboardEntry>,
 }
 
 #[derive(Debug, Clone, Serialize)]
