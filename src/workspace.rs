@@ -2,6 +2,7 @@ use axum::{extract::Query, http::StatusCode, Json};
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
+    collections::HashSet,
     path::{Component, Path, PathBuf},
     sync::{Arc, RwLock},
 };
@@ -164,11 +165,16 @@ impl WorkspaceState {
         if !canonical_parent.starts_with(&root) {
             return Err("تم رفض الكتابة خارج Workspace".into());
         }
-        if target.exists() {
-            let canonical_target = fs::canonicalize(&target).map_err(|error| error.to_string())?;
-            if !canonical_target.starts_with(&root) || !canonical_target.is_file() {
-                return Err("تم رفض الكتابة إلى مسار غير آمن".into());
+        match fs::symlink_metadata(&target) {
+            Ok(_) => {
+                let canonical_target = fs::canonicalize(&target)
+                    .map_err(|_| "تم رفض رابط رمزي غير صالح".to_string())?;
+                if !canonical_target.starts_with(&root) || !canonical_target.is_file() {
+                    return Err("تم رفض الكتابة إلى مسار غير آمن".into());
+                }
             }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(error.to_string()),
         }
         fs::write(target, content).map_err(|error| format!("فشلت كتابة الملف: {error}"))
     }
@@ -180,9 +186,13 @@ impl WorkspaceState {
             return Err("اكتب نصاً للبحث عنه".into());
         }
         let mut pending = vec![root.clone()];
+        let mut visited_dirs = HashSet::new();
         let mut visited = 0usize;
         let mut matches = Vec::new();
         while let Some(directory) = pending.pop() {
+            if !visited_dirs.insert(directory.clone()) {
+                continue;
+            }
             let items = fs::read_dir(directory).map_err(|error| error.to_string())?;
             for item in items {
                 let item = item.map_err(|error| error.to_string())?;
