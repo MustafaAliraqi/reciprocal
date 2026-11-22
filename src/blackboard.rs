@@ -70,3 +70,38 @@ impl Blackboard {
         output
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn publishes_ordered_task_scoped_entries() {
+        let mut board = Blackboard::new("task-a");
+        board.publish("plan", BlackboardKind::Plan, Architecture::Autoregressive, "planner", "step one").unwrap();
+        board.publish("artifact", BlackboardKind::Artifact, Architecture::Diffusion, "worker", "result").unwrap();
+        let entries = board.entries();
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].sequence, 1);
+        assert_eq!(entries[1].sequence, 2);
+        assert_eq!(entries[0].task_id, "task-a");
+        assert!(board.context_for_agent().contains("step one"));
+        assert!(board.context_for_agent().contains("result"));
+    }
+
+    #[test]
+    fn rejects_unsafe_keys_and_oversized_entries() {
+        let mut board = Blackboard::new("task-a");
+        assert!(board.publish("../escape", BlackboardKind::Output, Architecture::Autoregressive, "agent", "x").is_err());
+        assert!(board.publish("too_big", BlackboardKind::Output, Architecture::Autoregressive, "agent", "x".repeat(MAX_ENTRY_BYTES + 1)).is_err());
+    }
+
+    #[test]
+    fn enforces_entry_limit() {
+        let mut board = Blackboard::new("task-a");
+        for index in 0..MAX_ENTRIES {
+            board.publish(format!("entry.{index}"), BlackboardKind::Observation, Architecture::Autoregressive, "agent", "ok").unwrap();
+        }
+        assert!(board.publish("overflow", BlackboardKind::Observation, Architecture::Autoregressive, "agent", "no").is_err());
+    }
+}
