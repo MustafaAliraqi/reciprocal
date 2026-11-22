@@ -8,6 +8,7 @@ use std::{
 };
 
 const MAX_READ_BYTES: u64 = 2 * 1024 * 1024;
+const MAX_WRITE_BYTES: usize = 2 * 1024 * 1024;
 const MAX_SEARCH_FILES: usize = 10_000;
 const MAX_SEARCH_RESULTS: usize = 100;
 
@@ -147,6 +148,9 @@ impl WorkspaceState {
     }
 
     pub fn write(&self, value: &str, content: &str) -> Result<(), String> {
+        if content.len() > MAX_WRITE_BYTES {
+            return Err("حجم المحتوى يتجاوز حد الكتابة (2 MiB)".into());
+        }
         let root = self.root()?;
         let relative = Self::relative_path(value)?;
         if relative.as_os_str().is_empty() || relative.file_name().is_none() {
