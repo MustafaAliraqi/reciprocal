@@ -1,15 +1,17 @@
-use crate::domain::{AdapterKind, Architecture, NewProvider, ProviderConfig};\nuse crate::workspace::WorkspaceState;
+use crate::domain::{AdapterKind, Architecture, NewProvider, ProviderConfig};
+use crate::workspace::WorkspaceState;
 use anyhow::{anyhow, Context, Result};
 use keyring::Entry;
 use serde::Serialize;
-use std::{fs, path::PathBuf, sync::Mutex};
+use std::{fs, path::PathBuf, sync::{Arc, Mutex}};
 
 const SERVICE: &str = "reciprocal";
 
 #[derive(Clone)]
 pub struct AppState {
     providers: std::sync::Arc<Mutex<Vec<ProviderConfig>>>,
-    config_path: PathBuf,\n    pub workspace: Arc<WorkspaceState>,
+    config_path: PathBuf,
+    pub workspace: Arc<WorkspaceState>,
 }
 
 #[derive(Debug, Clone, Serialize)]
