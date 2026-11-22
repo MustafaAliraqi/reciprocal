@@ -17,7 +17,7 @@ The architecture family is an explicit part of every provider configuration and 
 
 - OpenAI-compatible `/chat/completions` endpoints.
 - OpenRouter and other compatible gateways through that adapter, when the chosen model supports the expected API.
-- Codex CLI as an external LLMs Agent runtime. Codex must be installed and authenticated separately; it runs its own agent loop and does not use Reciprocal's workspace tools.
+- Codex CLI as an external LLMs Agent runtime. Codex must be installed and authenticated separately; it runs its own agent loop, does not use Reciprocal's workspace tools, and starts in the selected Workspace directory.
 - Provider capability flags are explicit. Workspace tool calling is opt-in and currently limited to OpenAI-compatible providers registered as LLMs Agents.
 
 The OpenAI-compatible adapter is a transport implementation, not a universal provider SDK.
