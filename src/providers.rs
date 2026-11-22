@@ -7,7 +7,7 @@ use std::{fs, path::PathBuf, sync::{Arc, Mutex}};
 use serde_json::{json, Value};
 
 const SERVICE: &str = "reciprocal";
-const MAX_TOOL_ROUNDS: usize = 8;
+const MAX_TOOL_ROUNDS: usize = 8;\nconst MAX_TOOL_CALLS: usize = 24;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -136,6 +136,9 @@ impl AppState {
             }
             messages.push(message);
             for call in calls {
+                if events.len() >= MAX_TOOL_CALLS {
+                    return Err(anyhow!("تجاوز النموذج الحد الأقصى لاستدعاءات الأدوات ({MAX_TOOL_CALLS})"));
+                }
                 let id=call.get("id").and_then(Value::as_str).unwrap_or("").to_owned();
                 let name=call.pointer("/function/name").and_then(Value::as_str).unwrap_or("").to_owned();
                 let raw=call.pointer("/function/arguments").and_then(Value::as_str).unwrap_or("{}");
