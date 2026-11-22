@@ -103,7 +103,7 @@ impl AppState {
     }
 
     pub async fn invoke(&self,provider:&ProviderConfig,prompt:&str)->Result<String>{
-        if provider.supports_tools { return Ok(self.invoke_agent(provider,prompt,false).await?.output); }
+        if provider.supports_tools && provider.adapter == AdapterKind::OpenAiCompatible && provider.architecture == Architecture::Autoregressive { return Ok(self.invoke_agent(provider,prompt,false).await?.output); }
         match provider.adapter {
             AdapterKind::CodexCli=>{
                 let output=tokio::process::Command::new("codex").arg("exec").arg("--skip-git-repo-check").arg("--model").arg(&provider.model).arg(prompt)
