@@ -12,4 +12,23 @@ $("#p-adapter").addEventListener("change",()=>{const codex=$("#p-adapter").value
 $("#p-architecture").addEventListener("change",()=>{if($("#p-architecture").value==="diffusion"&&$("#p-adapter").value==="codex_cli")$("#p-adapter").value="open_ai_compatible"});
 $("#provider-form").addEventListener("submit",async e=>{e.preventDefault();const payload={name:$("#p-name").value,architecture:$("#p-architecture").value,adapter:$("#p-adapter").value,endpoint:$("#p-endpoint").value||null,model:$("#p-model").value,api_key:$("#p-key").value||null};const r=await fetch("/api/providers",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});if(!r.ok){alert(await r.text());return}e.target.reset();$("#p-adapter").value="open_ai_compatible";$("#endpoint-field").classList.remove("hidden");await refreshProviders()});
 $("#run").addEventListener("click",async()=>{const button=$("#run"),status=$("#status");button.disabled=true;status.textContent="جارٍ تنفيذ المهمة…";$("#result").classList.add("hidden");const payload={task:$("#task").value,workflow:workflow.value,autoregressive_provider:$("#ar-provider").value||null,diffusion_provider:$("#diffusion-provider").value||null};try{const r=await fetch("/api/tasks",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});if(!r.ok)throw new Error(await r.text());const data=await r.json();$("#run-id").textContent=data.id;$("#stages").innerHTML="";for(const s of data.stages){const box=document.createElement("section");box.className="stage";const head=document.createElement("div");head.className="stage-head";head.textContent=(s.architecture==="autoregressive"?"LLMs Agent · ":"DIFFUSION AGENT · ")+s.provider;const pre=document.createElement("pre");pre.textContent=s.output;box.append(head,pre);$("#stages").append(box)}$("#final-output").textContent=data.output;$("#result").classList.remove("hidden");status.textContent="اكتمل التنفيذ"}catch(e){status.textContent="تعذّر التنفيذ: "+e.message}finally{button.disabled=false}});
-updateWorkflow();refreshProviders();
+
+async function refreshWorkspace(){
+  try {
+    const r=await fetch("/api/workspace");
+    const w=await r.json();
+    $("#workspace-status").textContent=w.configured?"Workspace: "+w.root:"لم يتم تحديد مجلد عمل.";
+  } catch(e) {
+    $("#workspace-status").textContent="تعذر قراءة إعداد Workspace";
+  }
+}
+$("#set-workspace").addEventListener("click",async()=>{
+  const path=$("#workspace-path").value.trim();
+  if(!path){$("#workspace-status").textContent="أدخل مسار المجلد أولاً.";return;}
+  const r=await fetch("/api/workspace",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({path})});
+  if(!r.ok){$("#workspace-status").textContent="تعذر التعيين: "+await r.text();return;}
+  const w=await r.json();
+  $("#workspace-status").textContent="Workspace: "+w.root;
+});
+
+updateWorkflow();refreshProviders();refreshWorkspace();
