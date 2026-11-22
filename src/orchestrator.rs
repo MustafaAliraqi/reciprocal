@@ -145,7 +145,7 @@ pub async fn execute(state: std::sync::Arc<AppState>, request: TaskRequest) -> R
             );
             board.publish(
                 "parallel.combined", BlackboardKind::Observation,
-                Architecture::Autoregressive, "Reciprocal Orchestrator", &output,
+                Architecture::Autoregressive, "Reciprocal Orchestrator", output.clone(),
             )?;
         }
         Workflow::Hierarchical => {
