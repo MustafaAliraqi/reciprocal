@@ -228,6 +228,24 @@ mod tests {
     }
 
     #[test]
+    fn legacy_codex_provider_cannot_be_used_as_diffusion() {
+        let (state, root) = test_state();
+        state.providers.lock().unwrap().push(ProviderConfig {
+            id: "legacy-codex".into(),
+            name: "Legacy Codex".into(),
+            architecture: Architecture::Diffusion,
+            adapter: AdapterKind::CodexCli,
+            endpoint: String::new(),
+            model: "model".into(),
+            secret_id: None,
+            supports_tools: false,
+        });
+        assert!(state.require_provider(Some("legacy-codex"), Architecture::Diffusion).is_err());
+        assert!(state.provider_views().is_empty());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn unknown_tools_are_rejected() {
         let (state, root) = test_state();
         let (_, success) = state.execute_workspace_tool("run_shell", &json!({}), true);
