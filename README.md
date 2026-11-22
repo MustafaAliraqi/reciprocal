@@ -58,7 +58,7 @@ Diffusion providers do not receive these function schemas. Codex CLI is also not
 
 - The user selects a local workspace root.
 - File tools accept relative paths only and reject parent traversal and paths resolving outside the workspace.
-- File reads are limited to 2 MiB.
+- File reads and agent-generated writes are limited to 2 MiB.
 - Search is bounded by file and result limits and skips common generated/vendor directories.
 - Writes are disabled by default. A per-task GUI consent checkbox explicitly authorizes the agent to write within the selected workspace for that task.
 - Git integration is read-only: status and unstaged diff only.
