@@ -231,23 +231,23 @@ impl WorkspaceState {
 }
 
 pub async fn get_workspace(
-    axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
+    axum::extract::State(state): axum::extract::State<Arc<crate::providers::AppState>>,
 ) -> Json<WorkspaceView> {
-    Json(state.view())
+    Json(state.workspace.view())
 }
 
 pub async fn set_workspace(
     axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
     Json(input): Json<SetWorkspaceRequest>,
 ) -> Result<Json<WorkspaceView>, (StatusCode, String)> {
-    state.set_root(&input.path).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
+    state.workspace.set_root(&input.path).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
 
 pub async fn list_files(
     axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
     Query(query): Query<PathQuery>,
 ) -> Result<Json<Vec<FileEntry>>, (StatusCode, String)> {
-    state.list(query.path.as_deref()).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
+    state.workspace.list(query.path.as_deref()).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
 
 pub async fn read_file(
@@ -255,7 +255,7 @@ pub async fn read_file(
     Query(query): Query<PathQuery>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     let path = query.path.ok_or((StatusCode::BAD_REQUEST, "حدد مسار الملف".into()))?;
-    state.read(&path).map(|content| Json(serde_json::json!({"path":path,"content":content})))
+    state.workspace.read(&path).map(|content| Json(serde_json::json!({"path":path,"content":content})))
         .map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
 
@@ -263,7 +263,7 @@ pub async fn write_file(
     axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
     Json(input): Json<WriteFileRequest>,
 ) -> Result<StatusCode, (StatusCode, String)> {
-    state.write(&input.path, &input.content)
+    state.workspace.write(&input.path, &input.content)
         .map(|()| StatusCode::NO_CONTENT)
         .map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
@@ -272,5 +272,5 @@ pub async fn search_files(
     axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
     Query(query): Query<SearchQuery>,
 ) -> Result<Json<Vec<SearchMatch>>, (StatusCode, String)> {
-    state.search(&query.query).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
+    state.workspace.search(&query.query).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
