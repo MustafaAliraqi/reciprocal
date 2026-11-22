@@ -188,3 +188,57 @@ fn workspace_tool_specs()->Value{
         {"type":"function","function":{"name":"git_diff","description":"Read-only unstaged Git diff for the selected workspace.","parameters":{"type":"object","properties":{},"additionalProperties":false}}}
     ])
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn test_state() -> (AppState, PathBuf) {
+        let root = std::env::temp_dir().join(format!("reciprocal-agent-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).unwrap();
+        let workspace = Arc::new(WorkspaceState::default());
+        workspace.set_root(root.to_str().unwrap()).unwrap();
+        let state = AppState {
+            providers: Arc::new(Mutex::new(Vec::new())),
+            config_path: root.join("providers.json"),
+            workspace,
+        };
+        (state, root)
+    }
+
+    #[test]
+    fn workspace_write_requires_explicit_task_consent() {
+        let (state, root) = test_state();
+        let args = json!({"path":"notes.txt","content":"approved only"});
+        let (denied, success) = state.execute_workspace_tool("workspace_write", &args, false);
+        assert!(!success);
+        assert!(denied.contains("رفض"));
+        assert!(!root.join("notes.txt").exists());
+
+        let (_, success) = state.execute_workspace_tool("workspace_write", &args, true);
+        assert!(success);
+        assert_eq!(fs::read_to_string(root.join("notes.txt")).unwrap(), "approved only");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn unknown_tools_are_rejected() {
+        let (state, root) = test_state();
+        let (_, success) = state.execute_workspace_tool("run_shell", &json!({}), true);
+        assert!(!success);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn workspace_tool_schema_contains_only_supported_operations() {
+        let schema = workspace_tool_specs();
+        let names: Vec<&str> = schema.as_array().unwrap().iter()
+            .filter_map(|item| item.pointer("/function/name").and_then(Value::as_str))
+            .collect();
+        assert_eq!(names, vec![
+            "workspace_list", "workspace_read", "workspace_search",
+            "workspace_write", "git_status", "git_diff"
+        ]);
+    }
+}
