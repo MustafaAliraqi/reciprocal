@@ -36,7 +36,7 @@ pub async fn execute(state: std::sync::Arc<AppState>, request: TaskRequest) -> R
     let mut board = Blackboard::new(task_id.to_string());
     let mut stages = Vec::new();
     let mut tool_events: Vec<ToolEvent> = Vec::new();
-    let mut output = String::new();
+    let output: String;
 
     match request.workflow {
         Workflow::Autoregressive => {
