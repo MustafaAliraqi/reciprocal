@@ -14,3 +14,14 @@
 .tool-event{border:1px solid var(--line);border-radius:5px;background:#fbfbf9;padding:12px;margin:8px 0}
 .tool-event strong{font-size:11px;color:var(--accent)}
 .tool-event pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.6 ui-monospace,Consolas,monospace;margin:8px 0 0;color:#454b45}
+
+.blackboard-panel{margin:20px 0;padding:17px;border:1px solid var(--line);border-radius:6px;background:#fdfdfb}
+.blackboard-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.blackboard-head h3{font-size:13px;margin:0 0 4px;font-weight:700}
+.blackboard-head p{font-size:11px;color:var(--muted);margin:0}
+.blackboard-head>span{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.blackboard-entry{border-top:1px solid #e9eae5;padding:12px 0}
+.blackboard-meta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:10px;margin-bottom:6px}
+.blackboard-entry strong{font-size:11px;color:#435b50}
+.blackboard-entry pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.7 ui-monospace,Consolas,monospace;color:#3b413b;margin:7px 0 0;max-height:240px;overflow:auto}
+@media(max-width:620px){.blackboard-meta{flex-direction:column;gap:3px}}
