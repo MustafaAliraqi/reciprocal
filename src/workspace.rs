@@ -237,21 +237,21 @@ pub async fn get_workspace(
 }
 
 pub async fn set_workspace(
-    axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
+    axum::extract::State(state): axum::extract::State<Arc<crate::providers::AppState>>,
     Json(input): Json<SetWorkspaceRequest>,
 ) -> Result<Json<WorkspaceView>, (StatusCode, String)> {
     state.workspace.set_root(&input.path).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
 
 pub async fn list_files(
-    axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
+    axum::extract::State(state): axum::extract::State<Arc<crate::providers::AppState>>,
     Query(query): Query<PathQuery>,
 ) -> Result<Json<Vec<FileEntry>>, (StatusCode, String)> {
     state.workspace.list(query.path.as_deref()).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
 
 pub async fn read_file(
-    axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
+    axum::extract::State(state): axum::extract::State<Arc<crate::providers::AppState>>,
     Query(query): Query<PathQuery>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     let path = query.path.ok_or((StatusCode::BAD_REQUEST, "حدد مسار الملف".into()))?;
@@ -260,7 +260,7 @@ pub async fn read_file(
 }
 
 pub async fn write_file(
-    axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
+    axum::extract::State(state): axum::extract::State<Arc<crate::providers::AppState>>,
     Json(input): Json<WriteFileRequest>,
 ) -> Result<StatusCode, (StatusCode, String)> {
     state.workspace.write(&input.path, &input.content)
@@ -269,7 +269,7 @@ pub async fn write_file(
 }
 
 pub async fn search_files(
-    axum::extract::State(state): axum::extract::State<Arc<WorkspaceState>>,
+    axum::extract::State(state): axum::extract::State<Arc<crate::providers::AppState>>,
     Query(query): Query<SearchQuery>,
 ) -> Result<Json<Vec<SearchMatch>>, (StatusCode, String)> {
     state.workspace.search(&query.query).map(Json).map_err(|error| (StatusCode::BAD_REQUEST, error))
