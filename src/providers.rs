@@ -154,6 +154,8 @@ impl AppState {
             "workspace_list"=>self.workspace.list(Some(path)).map(|v|serde_json::to_string_pretty(&v).unwrap_or_default()),
             "workspace_read"=>self.workspace.read(path),
             "workspace_search"=>self.workspace.search(args.get("query").and_then(Value::as_str).unwrap_or("")).map(|v|serde_json::to_string_pretty(&v).unwrap_or_default()),
+            "git_status"=>self.workspace.git_status(),
+            "git_diff"=>self.workspace.git_diff(),
             "workspace_write" if !allow_writes=>Err("رفض التنفيذ: المستخدم لم يمنح إذناً بتعديل ملفات Workspace لهذه المهمة".into()),
             "workspace_write"=>self.workspace.write(path,args.get("content").and_then(Value::as_str).unwrap_or("")).map(|_|"تمت كتابة الملف بعد منح المستخدم الإذن المسبق لهذه المهمة".into()),
             _=>Err("أداة غير معروفة أو غير مسموح بها".into()),
@@ -167,6 +169,8 @@ fn workspace_tool_specs()->Value{
         {"type":"function","function":{"name":"workspace_list","description":"List files and directories inside the selected workspace. Use relative paths.","parameters":{"type":"object","properties":{"path":{"type":"string","description":"Relative directory path; empty for workspace root"}},"required":["path"],"additionalProperties":false}}},
         {"type":"function","function":{"name":"workspace_read","description":"Read a UTF-8 text file inside the selected workspace.","parameters":{"type":"object","properties":{"path":{"type":"string","description":"Relative file path"}},"required":["path"],"additionalProperties":false}}},
         {"type":"function","function":{"name":"workspace_search","description":"Search text inside workspace files.","parameters":{"type":"object","properties":{"query":{"type":"string"}},"required":["query"],"additionalProperties":false}}},
-        {"type":"function","function":{"name":"workspace_write","description":"Write or replace a file inside the selected workspace. Only call when the user explicitly allowed workspace writes for this task.","parameters":{"type":"object","properties":{"path":{"type":"string"},"content":{"type":"string"}},"required":["path","content"],"additionalProperties":false}}}
+        {"type":"function","function":{"name":"workspace_write","description":"Write or replace a file inside the selected workspace. Only call when the user explicitly allowed workspace writes for this task.","parameters":{"type":"object","properties":{"path":{"type":"string"},"content":{"type":"string"}},"required":["path","content"],"additionalProperties":false}}},
+        {"type":"function","function":{"name":"git_status","description":"Read-only Git status for the selected workspace.","parameters":{"type":"object","properties":{},"additionalProperties":false}}},
+        {"type":"function","function":{"name":"git_diff","description":"Read-only unstaged Git diff for the selected workspace.","parameters":{"type":"object","properties":{},"additionalProperties":false}}}
     ])
 }
