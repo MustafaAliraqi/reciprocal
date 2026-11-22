@@ -8,7 +8,7 @@
 <section id="work-view" class="view">
 <div class="intro"><div><h2>شنو تريد تنجز؟</h2><p>اختَر LLMs Agent أو Diffusion Agent، أو نسّق بين الاثنين. كل مرحلة تنفّذ طلباً فعلياً إلى الموصل المحدد.</p></div></div>
 <div class="panel workspace-panel">
-<h2>Workspace</h2><p class="hint">حدد مجلد العمل الذي يُسمح لأدوات الملفات بالوصول إليه. لا يمكن للأدوات الخروج من هذا المجلد.</p><div class="workspace-select"><input id="workspace-path" placeholder="مسار المجلد، مثلاً C:\Projects\MyApp"><button id="set-workspace" type="button">تعيين Workspace</button></div><div id="workspace-status" class="workspace-status">لم يتم تحديد مجلد عمل.</div>
+<h2>Workspace</h2><p class="hint">حدد مجلد العمل الذي يُسمح لأدوات الملفات بالوصول إليه. لا يمكن للأدوات الخروج من هذا المجلد.</p><div class="workspace-select"><input id="workspace-path" placeholder="مسار المجلد، مثلاً C:\Projects\MyApp"><button id="set-workspace" type="button">تعيين Workspace</button></div><div id="workspace-status" class="workspace-status">لم يتم تحديد مجلد عمل.</div><label class="consent"><input id="allow-workspace-writes" type="checkbox"> أسمح لوكيل LLMs بتعديل الملفات داخل Workspace خلال هذه المهمة</label>
 </div>
 <div class="panel">
 <label for="task">المهمة</label><textarea id="task" placeholder="اكتب المهمة بالتفصيل..."></textarea>
@@ -16,7 +16,7 @@
 <div class="provider-grid"><div class="field" id="ar-field"><label for="ar-provider">LLMs Agent</label><select id="ar-provider"></select></div><div class="field" id="diffusion-field"><label for="diffusion-provider">Diffusion Agent</label><select id="diffusion-provider"></select></div></div>
 <div class="actions"><button id="run">تنفيذ المهمة</button><span id="status" role="status"></span></div>
 </div>
-<div id="result" class="result hidden"><div class="result-head"><h2>النتيجة</h2><span id="run-id"></span></div><div id="stages"></div><article id="final-output" class="output"></article></div>
+<div id="result" class="result hidden"><div class="result-head"><h2>النتيجة</h2><span id="run-id"></span></div><div id="stages"></div><section id="tool-events" class="tool-events hidden"><h3>سجل استدعاءات الأدوات</h3><div id="tool-event-list"></div></section><article id="final-output" class="output"></article></div>
 </section>
 <section id="providers-view" class="view hidden">
 <div class="intro"><div><h2>موصلات الوكلاء</h2><p>كل موصل ينتمي إلى عائلة معمارية محددة. LLMs Agent وDiffusion Agent لهما قوائم منفصلة.</p></div></div>
@@ -28,7 +28,7 @@
 <label for="p-adapter">طريقة الاتصال</label><select id="p-adapter"><option value="open_ai_compatible">OpenAI-compatible API</option><option value="codex_cli">Codex CLI (LLMs Agent only)</option></select>
 <div id="endpoint-field"><label for="p-endpoint">عنوان API</label><input id="p-endpoint" placeholder="https://openrouter.ai/api/v1"></div>
 <label for="p-model">معرّف النموذج / runtime</label><input id="p-model" required placeholder="provider/model-name">
-<label for="p-key">مفتاح API (اختياري لـ Codex CLI)</label><input id="p-key" type="password" autocomplete="off" placeholder="يُستخدم للطلب الحالي ولا يُعرض مجدداً">
+<label for="p-key">مفتاح API (اختياري لـ Codex CLI)</label><input id="p-key" type="password" autocomplete="off" placeholder="يُستخدم للطلب الحالي ولا يُعرض مجدداً"><label class="consent"><input id="p-tools" type="checkbox"> تفعيل أدوات Workspace لهذا الموصل (OpenAI-compatible + LLMs فقط)</label>
 <button type="submit">حفظ الموصل</button><p class="hint">مفتاح API يُحفظ في مدير كلمات مرور النظام ولا يُكتب داخل ملف إعدادات Reciprocal.</p>
 </form>
 <div class="panel"><h2>LLMs Agents</h2><div id="ar-list" class="provider-list"></div><div class="divider"></div><h2>Diffusion Agents</h2><div id="diffusion-list" class="provider-list"></div></div>
