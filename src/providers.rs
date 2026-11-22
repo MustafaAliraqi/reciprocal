@@ -7,7 +7,8 @@ use std::{fs, path::PathBuf, sync::{Arc, Mutex}};
 use serde_json::{json, Value};
 
 const SERVICE: &str = "reciprocal";
-const MAX_TOOL_ROUNDS: usize = 8;\nconst MAX_TOOL_CALLS: usize = 24;
+const MAX_TOOL_ROUNDS: usize = 8;
+const MAX_TOOL_CALLS: usize = 24;
 
 #[derive(Clone)]
 pub struct AppState {
