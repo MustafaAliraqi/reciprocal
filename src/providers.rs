@@ -46,7 +46,9 @@ impl AppState {
     }
 
     pub fn provider_views(&self) -> Vec<ProviderView> {
-        self.providers.lock().map(|items| items.iter().map(|p| ProviderView {
+        self.providers.lock().map(|items| items.iter()
+            .filter(|p| !(p.adapter == AdapterKind::CodexCli && p.architecture != Architecture::Autoregressive))
+            .map(|p| ProviderView {
             id:p.id.clone(), name:p.name.clone(), architecture:p.architecture, adapter:p.adapter,
             endpoint:p.endpoint.clone(), model:p.model.clone(),
             configured:p.secret_id.as_ref().map(|id| Entry::new(SERVICE,id).ok().and_then(|e|e.get_password().ok()).is_some()).unwrap_or(p.adapter==AdapterKind::CodexCli),
@@ -88,6 +90,9 @@ impl AppState {
         let providers=self.providers.lock().map_err(|_|anyhow!("provider store is locked"))?;
         let provider=providers.iter().find(|p|p.id==id).ok_or_else(||anyhow!("الموصل المحدد غير موجود"))?;
         if provider.architecture!=architecture{return Err(anyhow!("رفض الإسناد: هذا الموصل ليس من فئة {}",architecture.label()));}
+        if provider.adapter == AdapterKind::CodexCli && architecture != Architecture::Autoregressive {
+            return Err(anyhow!("Codex CLI لا يمكن استخدامه كـ Diffusion Agent"));
+        }
         Ok(provider.clone())
     }
 
