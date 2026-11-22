@@ -3,11 +3,18 @@ pub mod orchestrator;
 pub mod providers;
 pub mod workspace;
 
-use axum::{body::Body, extract::{State, Path}, http::{header, StatusCode, Uri}, response::Response, routing::get, Json, Router};
-use rust_embed::RustEmbed;
+use axum::{
+    body::Body,
+    extract::{Path, State},
+    http::{header, StatusCode, Uri},
+    response::Response,
+    routing::get,
+    Json, Router,
+};
 use domain::{NewProvider, TaskRequest};
 use providers::{AppState, ProviderView};
-use std::sync::Arc;\nuse workspace::WorkspaceState;
+use rust_embed::RustEmbed;
+use std::sync::Arc;
 
 #[derive(RustEmbed)]
 #[folder = "static/"]
@@ -20,6 +27,11 @@ pub fn app() -> Router {
         .route("/api/providers", get(list_providers).post(add_provider))
         .route("/api/providers/:id", axum::routing::delete(remove_provider))
         .route("/api/tasks", axum::routing::post(run_task))
+        .route("/api/workspace", get(workspace::get_workspace).post(workspace::set_workspace))
+        .route("/api/workspace/files", get(workspace::list_files))
+        .route("/api/workspace/read", get(workspace::read_file))
+        .route("/api/workspace/write", axum::routing::post(workspace::write_file))
+        .route("/api/workspace/search", get(workspace::search_files))
         .with_state(state)
         .fallback(static_file)
 }
@@ -68,7 +80,9 @@ async fn static_file(uri: Uri) -> Response<Body> {
                 .body(Body::from(asset.data.into_owned()))
                 .expect("valid static response")
         }
-        None => Response::builder().status(StatusCode::NOT_FOUND)
-            .body(Body::from("Not found")).expect("valid 404 response"),
+        None => Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(Body::from("Not found"))
+            .expect("valid 404 response"),
     }
 }
