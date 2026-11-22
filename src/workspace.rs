@@ -37,12 +37,6 @@ pub struct SearchQuery {
     pub query: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct WriteFileRequest {
-    pub path: String,
-    pub content: String,
-}
-
 #[derive(Debug, Serialize)]
 pub struct FileEntry {
     pub name: String,
@@ -266,15 +260,6 @@ pub async fn read_file(
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     let path = query.path.ok_or((StatusCode::BAD_REQUEST, "حدد مسار الملف".into()))?;
     state.workspace.read(&path).map(|content| Json(serde_json::json!({"path":path,"content":content})))
-        .map_err(|error| (StatusCode::BAD_REQUEST, error))
-}
-
-pub async fn write_file(
-    axum::extract::State(state): axum::extract::State<Arc<crate::providers::AppState>>,
-    Json(input): Json<WriteFileRequest>,
-) -> Result<StatusCode, (StatusCode, String)> {
-    state.workspace.write(&input.path, &input.content)
-        .map(|()| StatusCode::NO_CONTENT)
         .map_err(|error| (StatusCode::BAD_REQUEST, error))
 }
 
