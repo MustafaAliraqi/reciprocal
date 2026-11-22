@@ -54,7 +54,7 @@ pub struct SearchMatch {
 }
 
 impl WorkspaceState {
-    fn root(&self) -> Result<PathBuf, String> {
+    pub fn root_path(&self) -> Result<PathBuf, String> {
         self.root
             .read()
             .map_err(|_| "workspace state is unavailable".to_string())?
@@ -98,7 +98,7 @@ impl WorkspaceState {
     }
 
     fn existing_path(&self, value: &str) -> Result<(PathBuf, PathBuf), String> {
-        let root = self.root()?;
+        let root = self.root_path()?;
         let relative = Self::relative_path(value)?;
         let canonical = fs::canonicalize(root.join(&relative))
             .map_err(|error| format!("تعذر الوصول إلى المسار: {error}"))?;
@@ -239,7 +239,11 @@ impl WorkspaceState {
     pub fn git_status(&self) -> Result<String, String> {
         let root = self.root()?;
         let output = std::process::Command::new("git")
-            .arg("-C").arg(root).args(["status", "--short", "--branch"])
+            .arg("-C").arg(root)
+            .args(["-c", "core.fsmonitor=false", "-c", "core.pager=cat", "status", "--short", "--branch"])
+            .env("GIT_OPTIONAL_LOCKS", "0")
+            .env_remove("GIT_DIR")
+            .env_remove("GIT_WORK_TREE")
             .output().map_err(|error| format!("تعذر تشغيل Git: {error}"))?;
         if !output.status.success() {
             return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
@@ -251,7 +255,10 @@ impl WorkspaceState {
         let root = self.root()?;
         let output = std::process::Command::new("git")
             .arg("-C").arg(root)
-            .args(["-c", "core.pager=cat", "diff", "--no-ext-diff", "--"])
+            .args(["-c", "core.fsmonitor=false", "-c", "core.pager=cat", "diff", "--no-ext-diff", "--no-textconv", "--"])
+            .env("GIT_OPTIONAL_LOCKS", "0")
+            .env_remove("GIT_DIR")
+            .env_remove("GIT_WORK_TREE")
             .output().map_err(|error| format!("تعذر تشغيل Git: {error}"))?;
         if !output.status.success() {
             return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
