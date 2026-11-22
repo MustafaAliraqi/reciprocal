@@ -151,7 +151,7 @@ impl WorkspaceState {
         if content.len() > MAX_WRITE_BYTES {
             return Err("حجم المحتوى يتجاوز حد الكتابة (2 MiB)".into());
         }
-        let root = self.root()?;
+        let root = self.root_path()?;
         let relative = Self::relative_path(value)?;
         if relative.as_os_str().is_empty() || relative.file_name().is_none() {
             return Err("حدد اسم ملف صالحاً".into());
@@ -178,7 +178,7 @@ impl WorkspaceState {
     }
 
     pub fn search(&self, needle: &str) -> Result<Vec<SearchMatch>, String> {
-        let root = self.root()?;
+        let root = self.root_path()?;
         let needle = needle.trim().to_lowercase();
         if needle.is_empty() {
             return Err("اكتب نصاً للبحث عنه".into());
@@ -237,7 +237,7 @@ impl WorkspaceState {
         Ok(matches)
     }
     pub fn git_status(&self) -> Result<String, String> {
-        let root = self.root()?;
+        let root = self.root_path()?;
         let output = std::process::Command::new("git")
             .arg("-C").arg(root)
             .args(["-c", "core.fsmonitor=false", "-c", "core.pager=cat", "status", "--short", "--branch"])
@@ -252,7 +252,7 @@ impl WorkspaceState {
     }
 
     pub fn git_diff(&self) -> Result<String, String> {
-        let root = self.root()?;
+        let root = self.root_path()?;
         let output = std::process::Command::new("git")
             .arg("-C").arg(root)
             .args(["-c", "core.fsmonitor=false", "-c", "core.pager=cat", "diff", "--no-ext-diff", "--no-textconv", "--"])
