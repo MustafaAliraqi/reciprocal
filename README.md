@@ -135,7 +135,6 @@ Successful builds are uploaded as workflow artifacts. A CI build confirms compil
 - `POST /api/workspace`
 - `GET /api/workspace/files`
 - `GET /api/workspace/read`
-- `POST /api/workspace/write`
 - `GET /api/workspace/search`
 
 ## License
