@@ -232,6 +232,29 @@ impl WorkspaceState {
         }
         Ok(matches)
     }
+    pub fn git_status(&self) -> Result<String, String> {
+        let root = self.root()?;
+        let output = std::process::Command::new("git")
+            .arg("-C").arg(root).args(["status", "--short", "--branch"])
+            .output().map_err(|error| format!("تعذر تشغيل Git: {error}"))?;
+        if !output.status.success() {
+            return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+        }
+        Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+    }
+
+    pub fn git_diff(&self) -> Result<String, String> {
+        let root = self.root()?;
+        let output = std::process::Command::new("git")
+            .arg("-C").arg(root)
+            .args(["-c", "core.pager=cat", "diff", "--no-ext-diff", "--"])
+            .output().map_err(|error| format!("تعذر تشغيل Git: {error}"))?;
+        if !output.status.success() {
+            return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+        }
+        Ok(String::from_utf8_lossy(&output.stdout).chars().take(100_000).collect())
+    }
+
 }
 
 pub async fn get_workspace(
