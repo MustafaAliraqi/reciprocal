@@ -79,3 +79,29 @@ pub struct TaskRequest {
     #[serde(default)]
     pub allow_workspace_writes: bool,
 }
+
+#[cfg(test)]
+mod compatibility_tests {
+    use super::*;
+
+    #[test]
+    fn old_provider_config_defaults_tool_capability_to_disabled() {
+        let value = serde_json::json!({
+            "id":"legacy", "name":"Legacy", "architecture":"autoregressive",
+            "adapter":"open_ai_compatible", "endpoint":"https://example.invalid/v1",
+            "model":"model", "secret_id":"legacy"
+        });
+        let provider: ProviderConfig = serde_json::from_value(value).unwrap();
+        assert!(!provider.supports_tools);
+    }
+
+    #[test]
+    fn old_task_request_defaults_workspace_writes_to_disabled() {
+        let value = serde_json::json!({
+            "task":"inspect project", "workflow":"autoregressive",
+            "autoregressive_provider":"p"
+        });
+        let request: TaskRequest = serde_json::from_value(value).unwrap();
+        assert!(!request.allow_workspace_writes);
+    }
+}
