@@ -50,11 +50,15 @@ fn workspace_rejects_symlinks_that_escape_root() {
     let outside = temp_dir("symlink-outside");
     fs::write(outside.join("secret.txt"), "secret").unwrap();
     symlink(&outside, root.join("escape")).unwrap();
+    symlink(outside.join("not-created.txt"), root.join("dangling.txt")).unwrap();
+    symlink(&root, root.join("loop")).unwrap();
     let workspace = WorkspaceState::default();
     workspace.set_root(root.to_str().unwrap()).unwrap();
 
     assert!(workspace.read("escape/secret.txt").is_err());
     assert!(workspace.write("escape/new.txt", "nope").is_err());
+    assert!(workspace.write("dangling.txt", "nope").is_err());
+    assert!(workspace.search("secret").unwrap().is_empty());
 
     fs::remove_dir_all(root).unwrap();
     fs::remove_dir_all(outside).unwrap();
