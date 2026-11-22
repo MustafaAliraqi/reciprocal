@@ -2,7 +2,7 @@
 
 **Reciprocal is a local-first agent workspace for coordinating autoregressive LLM agents and language-diffusion agents without treating them as the same architecture.**
 
-It combines provider configuration, multi-agent workflows, a bounded workspace tool runtime, and a browser-based local GUI in one native Rust application.
+It combines provider configuration, multi-agent workflows, a bounded workspace tool runtime, a task-scoped agent blackboard, and a browser-based local GUI in one native Rust application.
 
 ## Agent families stay separate
 
@@ -32,6 +32,21 @@ The OpenAI-compatible adapter is a transport implementation, not a universal pro
 - Hierarchical execution: LLMs planning → Diffusion work → LLMs verification.
 
 These workflows compose model calls; they do not rank architectures or assume one family is universally better.
+
+### Agent blackboard
+
+Every task creates an isolated, in-memory blackboard. The orchestrator publishes each completed stage as a typed, attributed entry:
+
+- **Plan** — planning-stage output.
+- **Artifact** — work produced by an execution stage.
+- **Review** — verification-stage output.
+- **Output / Observation** — ordinary stage and combined results.
+
+Each entry carries the task ID, sequence number, key, agent architecture, provider name, type, and content. Later stages receive a bounded snapshot of prior entries as context, so an AR agent can pass structured work to a Diffusion agent and vice versa without merging their runtimes or tool interfaces. In parallel mode, both agents start from the same initial board; their results are published after both calls complete.
+
+The GUI displays the board timeline with source and type attribution. The board is append-only during a task, capped at 32 entries and 128 KiB per entry; only the latest eight entries are injected into a later stage's prompt, with content truncated to 8,000 characters per entry.
+
+**Current boundary:** this is an orchestrator-mediated, stage-level blackboard. Agents do not yet have live blackboard read/write tools during generation, and the board is not persisted or shared between separate tasks. Diffusion agents receive the board through their prompt/context; they do not receive AR function-calling tools.
 
 ### Agent tool runtime
 
@@ -73,10 +88,11 @@ These are deliberately not represented as existing features:
 - Native language-diffusion inference adapters. The current chat-completions transport does not turn a model into a diffusion model.
 - Automatic architecture discovery or a verified provider/model catalogue.
 - Reciprocal-managed tools for Codex CLI.
+- Live blackboard read/write tools, cross-task board persistence, and durable task sessions/resume.
 - General terminal execution, browser automation, plugin marketplace, vector database/RAG, or benchmark suite.
-- Durable task sessions/resume, background task queue, live token streaming, and cooperative cancellation.
+- Background task queue, live token streaming, and cooperative cancellation.
 
-The last group is future runtime work. Current task execution is a synchronous request/response operation; task tool events are returned when the request completes.
+Current task execution is a synchronous request/response operation; stage results, blackboard entries, and tool events are returned when the request completes.
 
 ## Run locally
 
@@ -117,9 +133,10 @@ Successful builds are uploaded as workflow artifacts. A CI build confirms compil
 
 ## Project layout
 
-- `src/domain.rs` — architecture families, workflows, provider and task types.
+- `src/domain.rs` — architecture families, workflows, provider, blackboard, and task types.
+- `src/blackboard.rs` — bounded, task-scoped shared knowledge board.
 - `src/providers.rs` — provider configuration, credential access, API calls, and bounded agent tool loop.
-- `src/orchestrator.rs` — multi-agent workflow execution.
+- `src/orchestrator.rs` — multi-agent workflow execution and blackboard coordination.
 - `src/workspace.rs` — workspace boundary checks, file operations, and read-only Git inspection.
 - `src/lib.rs`, `src/main.rs` — local HTTP API, embedded assets, and startup.
 - `static/` — GUI.
