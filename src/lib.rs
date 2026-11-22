@@ -1,12 +1,13 @@
 pub mod domain;
 pub mod orchestrator;
 pub mod providers;
+pub mod workspace;
 
 use axum::{body::Body, extract::{State, Path}, http::{header, StatusCode, Uri}, response::Response, routing::get, Json, Router};
 use rust_embed::RustEmbed;
 use domain::{NewProvider, TaskRequest};
 use providers::{AppState, ProviderView};
-use std::sync::Arc;
+use std::sync::Arc;\nuse workspace::WorkspaceState;
 
 #[derive(RustEmbed)]
 #[folder = "static/"]
